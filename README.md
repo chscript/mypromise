@@ -1,7 +1,5 @@
 # 手写Promise
 
-------
-
 ## Promise 构造函数
 
 我们先来写 Promise 的构造函数。需要处理的值如下：
@@ -28,8 +26,6 @@ class myPromise {
 }
 ```
 
-------
-
 ## 三个状态（pending、rejected和fulfilled）
 
 `pending`：待定状态。待定`Promise`。只有在`then`方法执行后才会保持此状态。
@@ -39,8 +35,6 @@ class myPromise {
 `rejected`：拒绝状态。终止`Promise`。只有在`reject`方法执行后才会由`pending`更改为此状态。
 
 **注意：其中只有`pedding`状态可以变更为`rejected`或`fulfilled`。`rejected`或`fulfilled`不能更改其他任何状态。**
-
-------
 
 ## 三个方法（resolve、reject和then）
 
@@ -169,8 +163,6 @@ then(onFulfilled, onRejected) {
 }
 ```
 
-------
-
 ## Promise 解决程序（resolvePromise方法）
 
 旁白：其实这个解决程序才是实现核心Promise最难的一部分。因为Promise A+规范对于这部分说的比较绕。
@@ -246,8 +238,6 @@ function resolvePromise(p2, x, resolve, reject) {
 2. **首次调用**：此时`called`为`undefined`，调用后`called`设为`true`
 
 **注意：2.3 中的`catch`可能会发生（两个回调函数）已经调用但出现错误的情况，因此同样按上述说明处理。**
-
-------
 
 ## 运行官方测试用例
 
@@ -410,8 +400,6 @@ package.json 文件修改如下：
 npm test
 ```
 
-------
-
 ## Promise 其他方法补充
 
 ### 容错处理方法
@@ -525,15 +513,11 @@ static race(promises) {
 }
 ```
 
-------
-
 上述所有实现代码已放置我的Github仓库。可自行下载测试，做更多优化。
 
 [ https://github.com/chscript/mypromise ]
 
 
-
-------
 
 > 参考
 >
