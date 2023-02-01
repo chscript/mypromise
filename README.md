@@ -1,17 +1,26 @@
-## 手写 Promise
+# 手写Promise
 
-我们先来写 Promise 构造函数的属性和值，以及处理new Promise时会传入的两个回调函数。如下：
+------
+
+## Promise 构造函数
+
+我们先来写 Promise 的构造函数。需要处理的值如下：
+
+1. Promise 状态记录：`this.state`
+2. 记录成功或失败的值：`this.value`和`this.reason`
+3. 收集解决和拒绝回调函数：`this.resolveCallbacks`和`this.rejectCallbacks`
+4. 执行首次传入的解决和拒绝回调函数：`func(this.resolve, this.reject)`
 
 ```javascript
 class myPromise {
     constructor(func) {
         this.state = 'pending' // Promise状态
         this.value = undefined // 成功的值
-        this.reason = undefined // 错误的值
+        this.reason = undefined // 失败的值
         this.resolveCallbacks = [] // 收集解决回调函数
-        this.rejectCallbacks = [] // 收集错误回调函数
+        this.rejectCallbacks = [] // 收集拒绝回调函数
         try { // 对传入的函数进行try...catch...做容错处理
-            func(this.resolve, this.reject) // 执行传入的两个回调函数
+            func(this.resolve, this.reject) // 执行首次传入的两个回调函数
         } catch (e) {
             this.reject(e)
         }
@@ -19,28 +28,32 @@ class myPromise {
 }
 ```
 
-### 三个状态（pending、rejected和fulfilled）
+------
 
-pending：待定状态。待定 Promise 。只有在`then`方法执行后才会保持此状态。
+## 三个状态（pending、rejected和fulfilled）
 
-rejected：拒绝状态。终止 Promise 。只有在`reject`方法执行后才会由 pending 更改为此状态。
+`pending`：待定状态。待定`Promise`。只有在`then`方法执行后才会保持此状态。
 
-fulfilled：解决状态。终止 Promise 。只有在`resolve`方法执行后才会由 pending 更改为此状态。
+`fulfilled`：解决状态。终止`Promise`。只有在`resolve`方法执行后才会由`pending`更改为此状态。
 
-**注意：其中只有 pedding 状态可以变更为 rejected 或 fulfilled 。rejected 或 fulfilled 不能更改其他任何状态。**
+`rejected`：拒绝状态。终止`Promise`。只有在`reject`方法执行后才会由`pending`更改为此状态。
 
-### 三个方法（resolve、reject和then）
+**注意：其中只有`pedding`状态可以变更为`rejected`或`fulfilled`。`rejected`或`fulfilled`不能更改其他任何状态。**
 
-#### `resolve`方法实现要点
+------
+
+## 三个方法（resolve、reject和then）
+
+### `resolve`方法实现要点
 
 1. 状态由`pending`为`fulfilled。`
 2. `resolve`方法传入的`value`参数赋值给`this.value`
 3. 按顺序执行`resolveCallbacks`里面所有解决回调函数
-4. 利用`call`方法将解决回调函数内部的 this 绑定为`undefined`
+4. 利用`call`方法将解决回调函数内部的`this`绑定为`undefined`
 
-**坑点 1**：`resolve`方法内部 this 指向会丢失，进而造成`this.value`丢失。
+**坑点 1**：`resolve`方法内部`this`指向会丢失，进而造成`this.value`丢失。
 
-**解决办法**：我们将`resolve`方法定义为箭头函数。在构造函数执行后，箭头函数可以绑定实例对象的 this 指向。
+**解决办法**：我们将`resolve`方法定义为箭头函数。在构造函数执行后，箭头函数可以绑定实例对象的`this`指向。
 
 ```javascript
 // 2.1. Promise 状态
@@ -55,16 +68,16 @@ resolve = (value) => { // 在执行构造函数时内部的this通过箭头函�
 }
 ```
 
-#### `reject`方法实现要点
+### `reject`方法实现要点
 
 1. 状态由`pending`为`rejected`
 2. `reject`方法传入的`reason`参数赋值给`this.reason`
 3. 按顺序执行`rejectCallbacks`里面所有拒绝回调函数
-4. 利用`call`方法将拒绝回调函数内部的 this 绑定为`undefined`
+4. 利用`call`方法将拒绝回调函数内部的`this`绑定为`undefined`
 
-**坑点 1**： `reject` 方法内部 this 指向会丢失，进而造成`this.reason`丢失。
+**坑点 1**： `reject` 方法内部`this`指向会丢失，进而造成`this.reason`丢失。
 
-**解决办法**：我们将`reject`方法定义为箭头函数。在构造函数执行后，箭头函数可以绑定实例对象的 this 指向。
+**解决办法**：我们将`reject`方法定义为箭头函数。在构造函数执行后，箭头函数可以绑定实例对象的`this`指向。
 
 ```javascript
 // 2.1. Promise 状态
@@ -79,7 +92,7 @@ reject = (reason) => { // 在执行构造函数时内部的this通过箭头函�
 }
 ```
 
-#### `then`方法实现要点
+### `then`方法实现要点
 
 1. 判断then方法的两个参数`onRejected`和`onFulfilled`是否为`function`。
 
@@ -156,7 +169,9 @@ then(onFulfilled, onRejected) {
 }
 ```
 
-### Promise 解决程序（resolvePromise方法）
+------
+
+## Promise 解决程序（resolvePromise方法）
 
 旁白：其实这个解决程序才是实现核心Promise最难的一部分。因为Promise A+规范对于这部分说的比较绕。
 
@@ -230,9 +245,11 @@ function resolvePromise(p2, x, resolve, reject) {
 1. **已经调用过一次**：此时`called`已经为true，直接`return`忽略
 2. **首次调用**：此时`called`为`undefined`，调用后`called`设为`true`
 
-**注意：2.3 中的catch可能会发生（两个回调函数）已经调用但出现错误的情况，因此同样按上述说明处理。**
+**注意：2.3 中的`catch`可能会发生（两个回调函数）已经调用但出现错误的情况，因此同样按上述说明处理。**
 
-### 运行官方测试用例
+------
+
+## 运行官方测试用例
 
 在完成上面的代码后，我们最终整合如下：
 
@@ -387,17 +404,19 @@ package.json 文件修改如下：
 }
 ```
 
-开始测试我们的手写 Promise，在终端执行以下命令即可：
+开始测试我们的手写Promise，在终端执行以下命令即可：
 
 ```shell
 npm test
 ```
 
-### Promise 其他方法补充
+------
 
-#### 容错处理方法
+## Promise 其他方法补充
 
-Promise.prototype.catch()
+### 容错处理方法
+
+**Promise.prototype.catch()**
 
 ```javascript
 catch(onRejected) {
@@ -405,7 +424,7 @@ catch(onRejected) {
 }
 ```
 
-Promise.prototype.finally()
+**Promise.prototype.finally()**
 
 ```javascript
 finally(callback) {
@@ -420,9 +439,9 @@ finally(callback) {
 }
 ```
 
-#### 静态方法
+### 静态方法
 
-Promise.resolve()
+**Promise.resolve()**
 
 ```javascript
 static resolve(value) {
@@ -436,7 +455,7 @@ static resolve(value) {
 }
 ```
 
-Promise.reject()
+**Promise.reject()**
 
 ```javascript
 static reject(reason) {
@@ -446,7 +465,7 @@ static reject(reason) {
 }
 ```
 
-Promise.all()
+**Promise.all()**
 
 ```javascript
 static all(promises) {
@@ -484,7 +503,7 @@ static all(promises) {
 }
 ```
 
-Promise.race()
+**Promise.race()**
 
 ```javascript
 static race(promises) {
@@ -506,16 +525,18 @@ static race(promises) {
 }
 ```
 
-上述所有实现代码已放置我的Github仓库，可自行下载测试，做更多优化。
+------
 
-[ https://github.com/chscript/myPromiseA- ]
+上述所有实现代码已放置我的Github仓库。可自行下载测试，做更多优化。
+
+[ https://github.com/chscript/mypromise ]
 
 
 
 ------
 
 > 参考
-> 
+>
 > [MDN-Promise ](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 >
 > [[译]Promise/A+ 规范](https://zhuanlan.zhihu.com/p/143204897)
