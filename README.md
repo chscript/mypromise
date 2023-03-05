@@ -2,7 +2,7 @@
 
 ## Promise 构造函数
 
-我们首先实现 Promise 的构造函数。具体分析如下：
+我们首先实现 Promise 的构造函数。需要处理的情况如下：
 
 1. Promise 状态记录：`this.state`
 2. 记录成功或失败的值：`this.value`和`this.reason`
